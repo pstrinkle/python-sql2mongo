@@ -6,11 +6,7 @@ from json import dumps, loads
 from datetime import datetime
 import re
 
-import cromo_aws
 import cromo_database
-import cromo_templates
-
-import cromo_email
 
 def tokenize(clauses):
     tokens = []
@@ -381,7 +377,6 @@ class Sql2Mongo(object):
             field_list, field_list_spec = process_fieldlist(field_list_str)
             all_fields = False
 
-        self.valid = True
         real_source = table
 
         self.real_source = real_source
@@ -450,20 +445,12 @@ class Sql2Mongo(object):
                     else:
                         new_row[field['name']] = value
 
-        # Don't share password hashes, since we store them in a database.
-        if self.real_source == cromo_database.CROMO_USER_DB:
-            if 'hash' in new_row:
-                del new_row['hash']
-
         return new_row
 
-    def execute(self, connection):
+    def execute(self, connection, database):
         rows = []
 
-        if not self.valid:
-            return rows
-
-        collection = connection[cromo_database.CROMO_DB][self.real_source]
+        collection = connection[database][self.real_source]
 
         if self.sorted_results:
             for row in collection.find(self.query_dict).sort(self.sorted_field, self.sorted_dir):
@@ -481,9 +468,9 @@ class Sql2Mongo(object):
 
         return rows
 
-def process_query(query_string, debug_only, connection = None):
+def process_query(query_string, debug_only, database, connection = None):
     """Process the query.
-    
+
     1. select * from users;
     2. select screen_name from users;
     3. select email from users where createdon like 'sumerian'"""
@@ -499,9 +486,8 @@ def process_query(query_string, debug_only, connection = None):
 
     # 6. Run the query.
     if connection is None:
-        with MongoClient(cromo_database.CROMO_URI) as connection:
-            rows = sqlobj.execute(connection)
+        raise Exception('Please provide a Mongo connection')
     else:
-        rows = sqlobj.execute(connection)
+        rows = sqlobj.execute(connection, database)
 
     return rows
