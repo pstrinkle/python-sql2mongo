@@ -1,6 +1,5 @@
 
 
-from boto.s3.connection import S3Connection
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 from json import dumps, loads
@@ -12,16 +11,6 @@ import cromo_database
 import cromo_templates
 
 import cromo_email
-
-# this conversion isn't normal.
-SOURCE_DB_NAME = {'campaigns' : cromo_database.CROMO_CAMPAIGNS_DB,
-                  'perks'     : cromo_database.CROMO_PERK_DB,
-                  'posts'     : cromo_database.CROMO_POST_DB,
-                  'links'     : cromo_database.CROMO_LINKS_DB,
-                  'updates'   : cromo_database.CROMO_CAMPAIGN_UPDATES_DB,
-                  'users'     : cromo_database.CROMO_USER_DB,
-                  'beta'      : cromo_database.CROMO_BETA_DB,
-                  'commits'   : cromo_database.CROMO_COMMIT_DB}
 
 def tokenize(clauses):
     tokens = []
@@ -393,9 +382,7 @@ class Sql2Mongo(object):
             all_fields = False
 
         self.valid = True
-        if table not in SOURCE_DB_NAME:
-            self.valid = False
-        real_source = SOURCE_DB_NAME[table]
+        real_source = table
 
         self.real_source = real_source
         self.query_dict = query_dict
